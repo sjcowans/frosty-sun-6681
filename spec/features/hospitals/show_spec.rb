@@ -1,21 +1,7 @@
 require 'rails_helper'
 
-RSpec.describe Doctor do
-  it {should belong_to :hospital}
-  it {should have_many :doctor_patients}
-  it {should have_many(:patients).through(:doctor_patients)}
-
-  it 'can list hospital name for doctor' do
-    @hospital_1 = Hospital.create!(name: "Grey Sloan Memorial Hospital")
-    @hospital_2 = Hospital.create!(name: "Seattle Grace Hospital")
-    @doctor_1 = @hospital_1.doctors.create!(name: "Meredith Grey", specialty: "General Surgery", university: "Geisel School of Medicine")
-    @doctor_2 = @hospital_2.doctors.create!(name: "Cristina Yang", specialty: "Cardiothoracic Surgery", university: "UC Berkeley")
-
-    expect(@doctor_1.hospital_name).to eq("Grey Sloan Memorial Hospital")
-    expect(@doctor_2.hospital_name).to eq("Seattle Grace Hospital")
-  end
-
-  it 'can list doctors by number of patients' do
+RSpec.describe 'hospital show page' do
+  before(:each) do
     @hospital_1 = Hospital.create!(name: "Grey Sloan Memorial Hospital")
     @hospital_2 = Hospital.create!(name: "Seattle Grace Hospital")
     @doctor_1 = @hospital_1.doctors.create!(name: "Meredith Grey", specialty: "General Surgery", university: "Geisel School of Medicine")
@@ -51,7 +37,46 @@ RSpec.describe Doctor do
     DoctorPatient.create!(doctor_id: @doctor_6.id, patient_id: @patient_3.id)
     DoctorPatient.create!(doctor_id: @doctor_6.id, patient_id: @patient_2.id)
     DoctorPatient.create!(doctor_id: @doctor_6.id, patient_id: @patient_1.id)
+  end
 
-    expect(Doctor.ordered_patient_count).to eq([@doctor_6, @doctor_5, @doctor_1, @doctor_2, @doctor_4, @doctor_3])
+  it 'lists hospital name and all doctors from this hospital' do
+    visit "hospitals/#{@hospital_1.id}"
+
+    expect(page).to have_content(@hospital_1.name)
+    expect(page).to have_no_content(@hospital_2.name)
+
+    within "#doctors" do
+      expect(page).to have_content(@doctor_1.name)
+      expect(page).to have_content(@doctor_2.name)
+      expect(page).to have_content(@doctor_3.name)
+      expect(page).to have_content(@doctor_4.name)
+      expect(page).to have_no_content(@doctor_5.name)
+      expect(page).to have_no_content(@doctor_6.name)
+    end
+  end
+
+  it 'shows number of patients next to each doctor' do
+    visit "hospitals/#{@hospital_1.id}"
+    within "#doctor_#{@doctor_1.id}" do
+      expect(page).to have_content("Patients: 4")
+    end
+    within "#doctor_#{@doctor_2.id}" do
+      expect(page).to have_content("Patients: 3")
+    end
+    within "#doctor_#{@doctor_3.id}" do
+      expect(page).to have_content("Patients: 1")
+    end
+    within "#doctor_#{@doctor_4.id}" do
+      expect(page).to have_content("Patients: 2")
+    end
+  end
+
+  it 'lists doctors in order of patients from most to least' do
+    visit "hospitals/#{@hospital_1.id}"
+    within "#doctors" do
+      expect(@doctor_1.name.to_s).to appear_before(@doctor_2.name.to_s)
+      expect(@doctor_2.name.to_s).to appear_before(@doctor_4.name.to_s)
+      expect(@doctor_4.name.to_s).to appear_before(@doctor_3.name.to_s)
+    end
   end
 end
