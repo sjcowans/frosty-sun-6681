@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe 'doctor show page' do
   before(:each) do
-    @hospital_1 = Hospita.create!(name: "Grey Sloan Memorial Hospital")
-    @hospital_2 = Hospita.create!(name: "Seattle Grace Hospital")
+    @hospital_1 = Hospital.create!(name: "Grey Sloan Memorial Hospital")
+    @hospital_2 = Hospital.create!(name: "Seattle Grace Hospital")
     @doctor_1 = @hospital_1.doctors.create!(name: "Meredith Grey", specialty: "General Surgery", university: "Geisel School of Medicine")
     @doctor_2 = @hospital_2.doctors.create!(name: "Cristina Yang", specialty: "Cardiothoracic Surgery", university: "UC Berkeley")
     @patient_1 = Patient.create!(name: "Sean", age: 25)
@@ -20,10 +20,11 @@ RSpec.describe 'doctor show page' do
 
   it 'has correct attributes' do
     visit "/doctors/#{@doctor_1.id}"
+    save_and_open_page
 
-    expect(page).to have_content(@dactor_1.name)
-    expect(page).to have_content(@dactor_1.specialty)
-    expect(page).to have_content(@dactor_1.university)
+    expect(page).to have_content(@doctor_1.name)
+    expect(page).to have_content(@doctor_1.specialty)
+    expect(page).to have_content(@doctor_1.university)
   end
 
   it 'has name of hospital and patients' do
