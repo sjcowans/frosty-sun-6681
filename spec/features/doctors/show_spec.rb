@@ -20,7 +20,6 @@ RSpec.describe 'doctor show page' do
 
   it 'has correct attributes' do
     visit "/doctors/#{@doctor_1.id}"
-    save_and_open_page
 
     expect(page).to have_content(@doctor_1.name)
     expect(page).to have_content(@doctor_1.specialty)
@@ -37,5 +36,22 @@ RSpec.describe 'doctor show page' do
     expect(page).to have_no_content(@hospital_2.name)
     expect(page).to have_no_content(@patient_4.name)
     expect(page).to have_no_content(@patient_5.name)
+  end
+
+  it 'can delete a patient from doctor' do
+    DoctorPatient.create!(doctor_id: @doctor_2.id, patient_id: @patient_2.id)
+    visit "/doctors/#{@doctor_1.id}"
+
+    expect(page).to have_button("Delete")
+
+    within "#patient_#{@patient_2.id}" do
+      click_button "Delete"
+    end
+
+    expect(page).to have_no_content(@patient_2.name)
+    expect(current_path).to eq("/doctors/#{@doctor_1.id}")
+
+    visit "/doctors/#{@doctor_2.id}"
+    expect(page).to have_content(@patient_2.name)
   end
 end
